@@ -2,10 +2,12 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <unistd.h>
 #include <list>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <iomanip>
 
 const std::string M3U_MAKE = "#EXTM3U";
 const std::string M3U_INFO = "#EXTINF";
@@ -14,7 +16,7 @@ const std::string M3U_TAIL = ".m3u8";
 const uint32_t M3U_INFO_LEN = 7;
 
 bool isFileExist(const std::string& name) {
-    return (access( name.c_str(), F_OK ) != -1 );
+    return (access(name.c_str(), F_OK) != -1);
 }
 
 uint64_t getIPTVs(std::istream& iss, std::list<std::pair<std::string, std::string>>& iptvs) {
@@ -41,19 +43,59 @@ uint64_t getIPTVs(std::istream& iss, std::list<std::pair<std::string, std::strin
 }
 
 bool CreateDir(const std::string& dirName) {
-    return mkdir(dirName.c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IRWXO) == 0;
+    std::stringstream oss;
+    oss << dirName;
+
+    std::string tName;
+    std::string tPath;
+    while (!oss.eof()) {
+        getline(oss, tName, '/');
+        if (tName.empty()) {
+            continue;
+        }
+
+        tPath += tName + "/";
+        if (access(tPath.c_str(), F_OK) != -1) {
+            continue;
+        }
+
+        if (mkdir(tPath.c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IRWXO) == -1) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+std::string duplicateName(const std::string& fileName, const std::string& fileExt) {
+    std::stringstream oName;
+    oName << fileName;
+
+    uint32_t index = 1;
+    while (isFileExist(oName.str() + fileExt)) {
+        oName.str("");
+        oName << fileName << "-" << std::setw(2) << std::setfill('0') << index;
+        std::cout << "NAME: " << oName.str() << std::endl;
+        index++;
+    }
+
+    return oName.str() + fileExt;
 }
 
 uint32_t toM3uFiles(const std::string& dirName, const std::list<std::pair<std::string, std::string>>& iptvs) {
     std::string m3uName;
+    if (!dirName.empty()) {
+        if (!CreateDir(dirName)) {
+            std::cout << "-- Error: failed to create directory, path = " << dirName << std::endl;
+            return 0;
+        }
+    }
+
     for (const auto& pairM3u : iptvs) {
         m3uName = pairM3u.first;
         m3uName = m3uName.substr(m3uName.rfind(',') + 1);
-        m3uName += ".m3u";
-        if (!dirName.empty()) {
-            CreateDir(dirName);
-            m3uName = dirName + "/" + m3uName;
-        }
+        m3uName = dirName + "/" + m3uName;
+        m3uName = duplicateName(m3uName, ".m3u");
 
         std::ofstream ofile(m3uName.c_str());
         if (!ofile.is_open()) {
