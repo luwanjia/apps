@@ -32,7 +32,7 @@ uint64_t getIPTVs(std::istream& iss, std::list<std::pair<std::string, std::strin
         }
 
         std::getline(iss, m3uUrl);
-        if (m3uUrl.rfind(M3U_TAIL.c_str()) != m3uUrl.size() - 5) {
+        if (m3uUrl[0] == '#') {
             continue;
         }
 
@@ -75,7 +75,6 @@ std::string duplicateName(const std::string& fileName, const std::string& fileEx
     while (isFileExist(oName.str() + fileExt)) {
         oName.str("");
         oName << fileName << "-" << std::setw(2) << std::setfill('0') << index;
-        std::cout << "NAME: " << oName.str() << std::endl;
         index++;
     }
 
