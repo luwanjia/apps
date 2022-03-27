@@ -93,6 +93,7 @@ uint32_t toM3uFiles(const std::string& dirName, const std::list<std::pair<std::s
     for (const auto& pairM3u : iptvs) {
         m3uName = pairM3u.first;
         m3uName = m3uName.substr(m3uName.rfind(',') + 1);
+        if (m3uName.back() == '\r') m3uName.pop_back();
         m3uName = dirName + "/" + m3uName;
         m3uName = duplicateName(m3uName, ".m3u");
 
