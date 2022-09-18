@@ -59,7 +59,11 @@ bool CreateDir(const std::string& dirName) {
             continue;
         }
 
+#if __MINGW64__
+        if (mkdir(tPath.c_str()) == -1) {
+#else
         if (mkdir(tPath.c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IRWXO) == -1) {
+#endif
             return false;
         }
     }
