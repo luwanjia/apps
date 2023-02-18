@@ -40,6 +40,8 @@ int32_t func(const std::string& url, const uint32_t tm_expire) {
     double time_connect = 0;
     double time_starttransfer = 0;
     double time_total = 0;
+    char* ip = nullptr;
+    uint32_t port = 0;
     int32_t http_code = 0;
     if(res == CURLE_OK) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -47,9 +49,12 @@ int32_t func(const std::string& url, const uint32_t tm_expire) {
         curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &time_connect);
         curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &time_starttransfer);
         curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time_total);
+        curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &ip);
+        curl_easy_getinfo(curl, CURLINFO_PRIMARY_PORT, &port);
 
         std::cout << "-- info: http_code = " << http_code << ", time_namelookup = " << time_namelookup << ", time_connect = " << time_connect << ", time_starttransfer = " << time_starttransfer \
           << ", time_total = " << time_total << std::endl;
+        std::cout << "-- info: ip = " << ip << ", port = " << port << std::endl;
     }
 
     curl_easy_cleanup(curl);
